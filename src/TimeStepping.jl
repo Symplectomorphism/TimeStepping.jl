@@ -3,6 +3,7 @@ module TimeStepping
 using JuMP
 using PATHSolver
 using Ipopt
+using LinearAlgebra
 
 include("extra_file.jl")
 
