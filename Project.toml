@@ -3,6 +3,9 @@ uuid = "c79d2625-f6e9-4dc7-9317-893e2bf7d4cb"
 authors = ["Aykut C. Satici"]
 version = "0.1.0"
 
+[deps]
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+
 [compat]
 julia = "1.5"
 
