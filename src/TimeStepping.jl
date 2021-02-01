@@ -1,6 +1,8 @@
 module TimeStepping
 
-using ForwardDiff
+using JuMP
+using PATHSolver
+using Ipopt
 
 include("extra_file.jl")
 
