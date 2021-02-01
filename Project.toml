@@ -1,0 +1,13 @@
+name = "TimeStepping"
+uuid = "c79d2625-f6e9-4dc7-9317-893e2bf7d4cb"
+authors = ["Aykut C. Satici"]
+version = "0.1.0"
+
+[compat]
+julia = "1.5"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
