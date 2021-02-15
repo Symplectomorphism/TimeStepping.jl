@@ -130,11 +130,11 @@ function step2(m::Moreau)
         A = m.W' * Minv * m.W
         b = m.W' * Minv * m.h * m.Δt + (1+m.ε) * m.W' * m.uA
         @constraint(model, A*λ + b .>= 0)
-        @constraint(model, u .== Minv * m.W * λ + Minv * m.h * m.Δt + m.uA)
+        @constraint(model, m.M * (u - m.uA) .== m.W * λ + m.h * m.Δt)
         @objective(model, Min, dot(λ, b .+ A*λ))
     else
         @constraint(model, λ .== 0)
-        @constraint(model, u .== Minv * m.h * m.Δt + m.uA)
+        @constraint(model, m.M * (u - m.uA) .== m.h * m.Δt)
         @objective(model, Min, 0)
     end
     @constraint(model, q .== m.qM + 1/2 * m.Δt * u)
