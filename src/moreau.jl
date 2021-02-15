@@ -8,7 +8,7 @@ mutable struct Moreau
     qM::Array{Float64, 1}
     qE::Array{Float64, 1}
     uE::Array{Float64, 1}
-    g::Array{Float64, 1}
+    g::Array{Float64, 1}            # Normal distance of contact
     W::Array{Float64, 2}            # Jacobian transpose in the normal direction
     Λ::Array{Float64, 1}            # Normal contact force
     H::Array{Int, 1}                # Which contacts are active?
@@ -21,7 +21,7 @@ n: degrees of freedom of the system
 m: number of unilateral constraints
 """
 
-function Moreau(n::Int)
+function Moreau(n::Int, gap::Function, dynamics::Function)
     qA = zeros(Float64, n)
     uA = zeros(Float64, n)
     qM = zeros(Float64, n)
@@ -36,3 +36,4 @@ function Moreau(n::Int)
 
     Moreau(dynamics, gap, M, h, qA, uA, qM, qE, uE, g, W, Λ, H, Δt, ε)
 end
+
