@@ -82,40 +82,40 @@ function _update_force_matrix(m::Moreau)
     m.Λ = zeros(Float64, length(m.g))
 end
 
-function _solve_LCP(m::Moreau)
-    Minv = inv(m.M)
-    if length(m.W) != 0
-        A = m.W' * Minv * m.W
-        b = m.W' * Minv * m.h * m.Δt + (1+m.ε) * m.W' * m.uA
+# function _solve_LCP(m::Moreau)
+#     Minv = inv(m.M)
+#     if length(m.W) != 0
+#         A = m.W' * Minv * m.W
+#         b = m.W' * Minv * m.h * m.Δt + (1+m.ε) * m.W' * m.uA
 
-        model = Model(PATHSolver.Optimizer)
-        set_optimizer_attribute(model, "output", "no")
-        @variable(model, x[1:length(m.Λ)] >= 0)
-        @constraint(model, A*x .+ b ⟂ x)
-        optimize!(model)
-        if !any( JuMP.termination_status(model) .== SUCCESS )
-            @warn "termination status: $(JuMP.termination_status(model))."
-        else
-            m.Λ = JuMP.value.(x)
-        end
-    else
-        m.Λ = zeros(Float64, length(m.g))
-    end
-    return Minv
-end
+#         model = Model(PATHSolver.Optimizer)
+#         set_optimizer_attribute(model, "output", "no")
+#         @variable(model, x[1:length(m.Λ)] >= 0)
+#         @constraint(model, A*x .+ b ⟂ x)
+#         optimize!(model)
+#         if !any( JuMP.termination_status(model) .== SUCCESS )
+#             @warn "termination status: $(JuMP.termination_status(model))."
+#         else
+#             m.Λ = JuMP.value.(x)
+#         end
+#     else
+#         m.Λ = zeros(Float64, length(m.g))
+#     end
+#     return Minv
+# end
+
+# function step(m::Moreau)
+#     _compute_index_set(m)
+#     Minv = _solve_LCP(m)
+#     if length(m.W) != 0
+#         m.uE = Minv * m.W * m.Λ + Minv * m.h * m.Δt + m.uA
+#     else
+#         m.uE = Minv * m.h * m.Δt + m.uA
+#     end
+#     m.qE = _compute_mid_displacements(m.qM, m.uE, m.Δt)
+# end
 
 function step(m::Moreau)
-    _compute_index_set(m)
-    Minv = _solve_LCP(m)
-    if length(m.W) != 0
-        m.uE = Minv * m.W * m.Λ + Minv * m.h * m.Δt + m.uA
-    else
-        m.uE = Minv * m.h * m.Δt + m.uA
-    end
-    m.qE = _compute_mid_displacements(m.qM, m.uE, m.Δt)
-end
-
-function step2(m::Moreau)
     _compute_index_set(m)
     Minv = inv(m.M)
 
@@ -127,9 +127,12 @@ function step2(m::Moreau)
     @variable(model, λ[1:length(m.Λ)] >= 0)
 
     if length(m.W) != 0
+        ### This part needs to be modified for extra holonomic contraints of the 
+        ### form ϕ(q) = 0.
         A = m.W' * Minv * m.W
         b = m.W' * Minv * m.h * m.Δt + (1+m.ε) * m.W' * m.uA
-        @constraint(model, A*λ + b .>= 0)
+        @constraint(model, b .+ A*λ .>= 0)
+        ###
         @constraint(model, m.M * (u - m.uA) .== m.W * λ + m.h * m.Δt)
         @objective(model, Min, dot(λ, b .+ A*λ))
     else
@@ -137,7 +140,7 @@ function step2(m::Moreau)
         @constraint(model, m.M * (u - m.uA) .== m.h * m.Δt)
         @objective(model, Min, 0)
     end
-    @constraint(model, q .== m.qM + 1/2 * m.Δt * u)
+    @constraint(model, q .== _compute_mid_displacements(m.qM, m.uE, m.Δt))
     optimize!(model)
     if !any( JuMP.termination_status(model) .== SUCCESS )
         @warn "termination status: $(JuMP.termination_status(model))."
