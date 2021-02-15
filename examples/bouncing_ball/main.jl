@@ -14,7 +14,7 @@ using TimeStepping
 mass = 1.0
 g = 9.81
 qA = [0.0; 1.0]
-uA = [0.0; -0.5]
+uA = [0.0; 0.5]
 
 function gap(q::Vector, u::Vector)
     W = zeros(2,1)
