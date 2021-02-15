@@ -127,6 +127,11 @@ function step(m::Moreau)
     @variable(model, λ[1:length(m.Λ)] >= 0)
 
     if length(m.W) != 0
+        """ The following does not work because of positive semidefiniteness...
+        ξ = m.W' * ( u + m.ε * m.uA )
+        @constraint(model, ξ .>= 0)
+        @objective(model, Min, dot(λ, ξ))
+        """
         ### This part needs to be modified for extra holonomic contraints of the 
         ### form ϕ(q) = 0.
         A = m.W' * Minv * m.W
