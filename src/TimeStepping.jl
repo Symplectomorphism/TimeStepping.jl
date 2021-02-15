@@ -1,5 +1,6 @@
 module TimeStepping
 
+using DataStructures
 using ForwardDiff
 using JuMP
 using PATHSolver
