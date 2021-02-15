@@ -5,11 +5,11 @@
 ## Basic Usage
 
 1. Define the _gap_ function with the signature
-> gap(q::Vector, u::Vector)
+> gap(q::Vector, u::Vector)\
 > return gap, force_matrix
 
 2. Define the _dynamics_ function with the signature
-> dynamics(q::Vector, u::Vector)
+> dynamics(q::Vector, u::Vector)\
 > return M, h
 
 3. Initialize the system by providing the gap and dynamics functions, and the initial conditions.
