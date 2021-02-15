@@ -4,6 +4,8 @@ using DataStructures
 using ForwardDiff
 using JuMP
 using PATHSolver
+using Mosek
+using MosekTools
 using Ipopt
 using LinearAlgebra
 using Revise
