@@ -27,10 +27,10 @@ n: degrees of freedom of the system
 m: number of unilateral constraints
 """
 
-function Moreau(n::Int, gap::Function, dynamics::Function, q::Vector, u::Vector)
-    Δt = 1e-3
+function Moreau(gap::Function, dynamics::Function, q::Vector, u::Vector, Δt::Float64=1e-3)
     qA = q
     uA = u
+    n = length(qA)
     qM = _compute_mid_displacements(qA, uA, Δt)
     M, h = dynamics(qM, uA)
     qE = zeros(Float64, n)
@@ -84,19 +84,22 @@ end
 
 function _solve_LCP(m::Moreau)
     Minv = inv(m.M)
-    A = m.W' * Minv * m.W
-    b = m.W' * Minv * m.h * m.Δt + (1+m.ε) * m.W' * m.uA
-    # myfunc(x) = A*x + b
+    if length(m.W) != 0
+        A = m.W' * Minv * m.W
+        b = m.W' * Minv * m.h * m.Δt + (1+m.ε) * m.W' * m.uA
 
-    model = Model(PATHSolver.Optimizer)
-    set_optimizer_attribute(model, "output", "no")
-    @variable(model, x[1:length(m.Λ)] >= 0)
-    @constraint(model, A*x .+ b ⟂ x)
-    optimize!(model)
-    if !any( JuMP.termination_status(model) .== SUCCESS )
-        @warn "termination status: $(JuMP.termination_status(model))."
+        model = Model(PATHSolver.Optimizer)
+        set_optimizer_attribute(model, "output", "no")
+        @variable(model, x[1:length(m.Λ)] >= 0)
+        @constraint(model, A*x .+ b ⟂ x)
+        optimize!(model)
+        if !any( JuMP.termination_status(model) .== SUCCESS )
+            @warn "termination status: $(JuMP.termination_status(model))."
+        else
+            m.Λ = JuMP.value.(x)
+        end
     else
-        m.Λ = JuMP.value.(x)
+        m.Λ = zeros(Float64, length(m.g))
     end
     return Minv
 end
@@ -104,6 +107,20 @@ end
 function step(m::Moreau)
     _compute_index_set(m)
     Minv = _solve_LCP(m)
-    m.uE = Minv * m.W * m.Λ + Minv * m.h * m.Δt + m.uA
+    if length(m.W) != 0
+        m.uE = Minv * m.W * m.Λ + Minv * m.h * m.Δt + m.uA
+    else
+        m.uE = Minv * m.h * m.Δt + m.uA
+    end
     m.qE = _compute_mid_displacements(m.qM, m.uE, m.Δt)
+end
+
+function set_state(m::Moreau, q::Vector, u::Vector)
+    m.qA = q
+    m.uA = u
+    n = length(m.qA)
+    m.qM = _compute_mid_displacements(m.qA, m.uA, m.Δt)
+    m.M, m.h = m.dynamics(m.qM, m.uA)
+    m.g, m.W = m.gap(m.qA, m.uA)
+    _compute_index_set(m)
 end
