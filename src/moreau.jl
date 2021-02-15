@@ -98,8 +98,12 @@ function _solve_LCP(m::Moreau)
     else
         m.Λ = JuMP.value.(x)
     end
+    return Minv
 end
 
 function step(m::Moreau)
-    
+    _compute_index_set(m)
+    Minv = _solve_LCP(m)
+    m.uE = Minv * m.W * m.Λ + Minv * m.h * m.Δt + m.uA
+    m.qE = _compute_mid_displacements(m.qM, m.uE, m.Δt)
 end
