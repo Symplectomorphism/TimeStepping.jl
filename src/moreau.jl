@@ -79,7 +79,7 @@ function _update_force_matrix(m::Moreau)
         temp = hcat(temp, m.W[:,1])
     end
     m.W = temp
-    m.Λ = zeros(Float64, length(m.H))
+    m.Λ = zeros(Float64, length(m.g))
 end
 
 function _solve_LCP(m::Moreau)
@@ -124,16 +124,16 @@ function step2(m::Moreau)
     set_optimizer_attribute(model, "INTPNT_CO_TOL_DFEAS", 1e-7)
     @variable(model, q[1:length(m.qA)])
     @variable(model, u[1:length(m.uA)])
+    @variable(model, λ[1:length(m.Λ)] >= 0)
 
     if length(m.W) != 0
         A = m.W' * Minv * m.W
         b = m.W' * Minv * m.h * m.Δt + (1+m.ε) * m.W' * m.uA
-
-        @variable(model, λ[1:length(m.Λ)] >= 0)
         @constraint(model, A*λ + b .>= 0)
         @constraint(model, u .== Minv * m.W * λ + Minv * m.h * m.Δt + m.uA)
         @objective(model, Min, dot(λ, b .+ A*λ))
     else
+        @constraint(model, λ .== 0)
         @constraint(model, u .== Minv * m.h * m.Δt + m.uA)
         @objective(model, Min, 0)
     end
