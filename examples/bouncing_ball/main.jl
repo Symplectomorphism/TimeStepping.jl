@@ -4,7 +4,7 @@ q = (x,z), u = (xdot, zdot),
 g(q) = q[2]
 W = del g / del q = [0; 1]
 M = [m 0; 0 m]
-h = [0 m*g]
+h = [0 -m*g]
 """
 
 using LinearAlgebra
