@@ -1,3 +1,6 @@
+const MOI = MathOptInterface
+const SUCCESS = [MOI.OPTIMAL, MOI.LOCALLY_SOLVED, MOI.ALMOST_OPTIMAL, MOI.ALMOST_LOCALLY_SOLVED]
+
 mutable struct Moreau
     dynamics::Function
     gap::Function                   # Gap function -- provide the force matrices
@@ -73,7 +76,30 @@ function _update_force_matrix(m::Moreau)
     n = length(m.qA)
     temp = zeros(Float64, n, 0)
     for i in m.H
-        push!(temp, m.W[:,i])
+        temp = hcat(temp, m.W[:,1])
     end
     m.W = temp
+    m.Λ = zeros(Float64, length(m.H))
+end
+
+function _solve_LCP(m::Moreau)
+    Minv = inv(m.M)
+    A = m.W' * Minv * m.W
+    b = m.W' * Minv * m.h * m.Δt + (1+m.ε) * m.W' * m.uA
+    # myfunc(x) = A*x + b
+
+    model = Model(PATHSolver.Optimizer)
+    set_optimizer_attribute(model, "output", "no")
+    @variable(model, x[1:length(m.Λ)] >= 0)
+    @constraint(model, A*x .+ b ⟂ x)
+    optimize!(model)
+    if !any( JuMP.termination_status(model) .== SUCCESS )
+        @warn "termination status: $(JuMP.termination_status(model))."
+    else
+        m.Λ = JuMP.value.(x)
+    end
+end
+
+function step(m::Moreau)
+    
 end

@@ -7,6 +7,7 @@ using PATHSolver
 using Ipopt
 using LinearAlgebra
 using Revise
+import MathOptInterface
 
 include("extra_file.jl")
 include("moreau.jl")
