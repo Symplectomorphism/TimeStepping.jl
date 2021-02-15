@@ -1,5 +1,6 @@
 module TimeStepping
 
+using ForwardDiff
 using JuMP
 using PATHSolver
 using Ipopt
