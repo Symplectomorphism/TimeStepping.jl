@@ -12,11 +12,16 @@
 > dynamics(q::Vector, u::Vector)\
 > return M, h
 
-3. Initialize the system by providing the gap and dynamics functions, and the initial conditions.
-> bouncing_ball = Integrator(gap, dynamics, qA, uA; Δt=1e-3)
+3. If there are bilateral constraints, define the holonomic constraint functions and their derivatives (Jacobian and Jacobian_dot).
+> loop(q::Vector), jac(q::Vector), jacdot(q::Vector, u::Vector)\
+> return ϕ, J, Jdot
 
-4. Integrate the system until final_time
-> integrate(bouncing_ball, 2.0)
+4. Initialize the system by providing the gap and dynamics functions, and the initial conditions (for holonomic constraints, provide them, too).
+> bouncing_ball = Integrator(gap, dynamics, qA, uA; Δt=1e-3)
+> sc_ball = Integrator(gap, dynamics, loop, jac, jacdot, q0, u0; Δt=1e-3)
+
+5. Integrate the system until final_time
+> integrate(bouncing_ball, final_time)
 
 ### Examples
 Examples are provided within the _examples_ folder.
