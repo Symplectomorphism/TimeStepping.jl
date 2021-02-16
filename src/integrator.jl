@@ -40,7 +40,7 @@ end
 function integrate(system::Integrator, final_time::Float64)
     for time in range(system.t[1]; step=system.Δt, stop=final_time)
         push!(system.t, time)
-        step(system.m)
+        step_constrained(system.m)
         # step2(system.m)
         push!(system.q, system.m.qE)
         push!(system.u, system.m.uE)

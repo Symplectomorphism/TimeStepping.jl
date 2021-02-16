@@ -19,9 +19,9 @@ const m4 = 1.0
 const J1 = 0.05
 const J2 = 0.07
 const g = 9.81
-final_time = 4.0
-q0 = [π/3; -π/4; 0.0; 1.0]
-u0 = [0.0; 0.0; 0.0; -0.5]
+final_time = 2.0
+q0 = [π-0.1; -π/4; 0.0; 1.0]
+u0 = [0.0; 0.0; 0.0; -1.0]
 
 function loop_fixed(q::Vector)
     return [
@@ -97,6 +97,19 @@ fig.axes[1].plot(sc_ball.t, getindex.(sc_ball.q,3), "b", linewidth=2)
 # fig.axes[1].set_title("Ball motion", fontsize=18)
 fig.axes[1].set_xlabel(L"$t$", fontsize=18)
 fig.axes[1].set_ylabel(L"$x_4(t)$, $x_3(t)$", fontsize=18)
+
+fig.axes[1].autoscale_view()
+fig.tight_layout()
+
+fig = figure(2, clear=true)
+fig.add_subplot(1,1,1)
+fig.axes[1].clear()
+fig.axes[1].plot(sc_ball.t, getindex.(sc_ball.u,4), "k", linewidth=2)
+fig.axes[1].plot(sc_ball.t, getindex.(sc_ball.u,3), "b", linewidth=2)
+
+# fig.axes[1].set_title("Ball motion", fontsize=18)
+fig.axes[1].set_xlabel(L"$t$", fontsize=18)
+fig.axes[1].set_ylabel(L"$\dot{x}_4(t)$, $\dot{x}_3(t)$", fontsize=18)
 
 fig.axes[1].autoscale_view()
 fig.tight_layout()

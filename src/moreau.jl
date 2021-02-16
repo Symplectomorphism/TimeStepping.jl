@@ -157,7 +157,7 @@ function step_constrained(m::Moreau)
 
     if length(m.W) != 0
         A = m.W' * Minv * ( I - m.J' * Mhat * m.J * Minv ) * m.W
-        b = m.W' * Minv * ( m.h + m.J' * Mhat *(hJ - m.J * Minv * h) ) * m.Δt + (1+m.ε) * m.W' * m.uA
+        b = m.W' * Minv * ( m.h + m.J' * Mhat *(hJ - m.J * Minv * m.h) ) * m.Δt + (1+m.ε) * m.W' * m.uA
         μ = Mhat * ( hJ - m.J * Minv * m.h - 1/m.Δt * m.J * Minv * m.W * λ )
         @constraint(model, b .+ A*λ .>= 0)
         @constraint(model, m.M * (u - m.uA) .== m.W * λ + (m.h + m.J' * μ) * m.Δt)
