@@ -3,24 +3,24 @@ mutable struct Integrator
     q::Array{Array{Float64, 1}, 1}
     u::Array{Array{Float64, 1}, 1}
     Λ::Array{Array{Float64, 1}, 1}
-    dynamics::Function
-    gap::Function
     m::Moreau
     Δt::Float64
 end
 
-function Integrator(gap::Function, dynamics::Function, q0::Vector, u0::Vector; Δt::Float64=1e-3)
-    t = Array{Float64, 1}()
-    q = Array{Array{Float64, 1},1}()
-    u = Array{Array{Float64, 1},1}()
-    Λ = Array{Array{Float64, 1},1}()
-    push!(t, 0.0)
-    push!(q, q0)
-    push!(u, u0)
-    m = Moreau(gap, dynamics, q[1], u[1], Δt)
 
-    Integrator(t, q, u, Λ, dynamics, gap, m, Δt)
-end
+# function Integrator(gap::Function, dynamics::Function, q0::Vector, u0::Vector; Δt::Float64=1e-3)
+#     t = Array{Float64, 1}()
+#     q = Array{Array{Float64, 1},1}()
+#     u = Array{Array{Float64, 1},1}()
+#     Λ = Array{Array{Float64, 1},1}()
+#     push!(t, 0.0)
+#     push!(q, q0)
+#     push!(u, u0)
+#     m = Moreau(gap, dynamics, q[1], u[1], Δt)
+
+#     Integrator(t, q, u, Λ, m, Δt)
+# end
+
 
 function Integrator(gap::Function, dynamics::Function, hcon::Function, 
     jac::Function, jacdot::Function, q0::Vector, u0::Vector; Δt::Float64=1e-3)
@@ -33,7 +33,7 @@ function Integrator(gap::Function, dynamics::Function, hcon::Function,
     push!(u, u0)
     m = Moreau(gap, dynamics, hcon, jac, jacdot, q[1], u[1], Δt)
 
-    Integrator(t, q, u, Λ, dynamics, gap, m, Δt)
+    Integrator(t, q, u, Λ, m, Δt)
 end
 
 
