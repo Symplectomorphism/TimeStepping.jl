@@ -147,12 +147,9 @@ function step_unconstrained(m::Moreau)
         @constraint(model, ξ .>= 0)
         @objective(model, Min, dot(λ, ξ))
         """
-        ### This part needs to be modified for extra holonomic contraints of the 
-        ### form ϕ(q) = 0.
         A = m.W' * Minv * m.W
         b = m.W' * Minv * m.h * m.Δt + (1+m.ε) * m.W' * m.uA
         @constraint(model, b .+ A*λ .>= 0)
-        ###
         @constraint(model, m.M * (u - m.uA) .== m.W * λ + m.h * m.Δt)
         @objective(model, Min, dot(λ, b .+ A*λ))
     else
