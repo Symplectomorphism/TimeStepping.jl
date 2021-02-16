@@ -145,7 +145,7 @@ function step(m::Moreau)
         @constraint(model, m.M * (u - m.uA) .== m.h * m.Δt)
         @objective(model, Min, 0)
     end
-    @constraint(model, q .== _compute_mid_displacements(m.qM, m.uE, m.Δt))
+    @constraint(model, q .== _compute_mid_displacements(m.qM, u, m.Δt))
     optimize!(model)
     if !any( JuMP.termination_status(model) .== SUCCESS )
         @warn "termination status: $(JuMP.termination_status(model))."
