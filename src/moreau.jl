@@ -226,13 +226,10 @@ function set_state(m::Moreau, q::Vector, u::Vector)
     m.qM = _compute_mid_displacements(m.qA, m.uA, m.Δt)
     m.M, m.h = m.dynamics(m.qM, m.uA)
     m.g, m.W = m.gap(m.qM, m.uA)
-<<<<<<< HEAD
-=======
     if !isempty(m.ϕ)
         m.ϕ = m.hcon(m.qM)
         m.J = m.jac(m.qM)
         m.Jdot = m.jacdot(m.qM, m.uA)
     end
->>>>>>> origin/holonomic
     _compute_index_set(m)
 end
