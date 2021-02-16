@@ -166,6 +166,6 @@ function set_state(m::Moreau, q::Vector, u::Vector)
     n = length(m.qA)
     m.qM = _compute_mid_displacements(m.qA, m.uA, m.Δt)
     m.M, m.h = m.dynamics(m.qM, m.uA)
-    m.g, m.W = m.gap(m.qA, m.uA)
+    m.g, m.W = m.gap(m.qM, m.uA)
     _compute_index_set(m)
 end
