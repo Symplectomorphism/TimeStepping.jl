@@ -35,6 +35,31 @@ n: degrees of freedom of the system
 m: number of unilateral constraints
 """
 
+function Moreau(gap::Function, dynamics::Function, q::Vector, u::Vector, Δt::Float64=1e-3)
+    qA = q
+    uA = u
+    n = length(qA)
+    qM = _compute_mid_displacements(qA, uA, Δt)
+    M, h = dynamics(qM, uA)
+    ϕ = Float64[]
+    J = Array{Float64, 2}(undef, 0, 0)
+    Jdot = Array{Float64, 2}(undef, 0, 0)
+    qE = zeros(Float64, n)
+    uE = zeros(Float64, n)
+    tA, tM, tE = zeros(Float64, 3)
+    tM = _compute_mid_time(tA, Δt)
+    tE = _compute_mid_time(tM, Δt)
+    ε = 0.5
+    ϵ = 0.01
+    g, W = gap(qA, uA)
+    H = SortedSet(Int[])
+    Λ = zeros(Float64, length(H))
+    μ = zeros(Float64, length(ϕ))
+
+    Moreau(dynamics, gap, x->x, x->x, x->x,
+        M, h, ϕ, J, Jdot, tA, tM, tE, qA, uA, qM, qE, uE, g, W, Λ, μ, H, Δt, ε, ϵ)
+end
+
 function Moreau(gap::Function, dynamics::Function, hcon::Function, 
         jac::Function, jacdot::Function, q::Vector, u::Vector, Δt::Float64=1e-3)
     qA = q
@@ -98,6 +123,14 @@ function _update_force_matrix(m::Moreau)
 end
 
 function step(m::Moreau)
+    if isempty(m.ϕ)
+        step_unconstrained(m)
+    else
+        step_constrained(m)
+    end
+end
+
+function step_unconstrained(m::Moreau)
     _compute_index_set(m)
     Minv = inv(m.M)
 
@@ -193,8 +226,10 @@ function set_state(m::Moreau, q::Vector, u::Vector)
     m.qM = _compute_mid_displacements(m.qA, m.uA, m.Δt)
     m.M, m.h = m.dynamics(m.qM, m.uA)
     m.g, m.W = m.gap(m.qM, m.uA)
-    m.ϕ = m.hcon(m.qM)
-    m.J = m.jac(m.qM)
-    m.Jdot = m.jacdot(m.qM, m.uA)
+    if !isempty(m.ϕ)
+        m.ϕ = m.hcon(m.qM)
+        m.J = m.jac(m.qM)
+        m.Jdot = m.jacdot(m.qM, m.uA)
+    end
     _compute_index_set(m)
 end
