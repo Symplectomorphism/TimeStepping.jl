@@ -91,10 +91,11 @@ fig = figure(1, clear=true)
 fig.add_subplot(1,1,1)
 fig.axes[1].clear()
 fig.axes[1].plot(sc_ball.t, getindex.(sc_ball.q,4), "k", linewidth=2)
+fig.axes[1].plot(sc_ball.t, getindex.(sc_ball.q,3), "k", linewidth=2)
 
-fig.axes[1].set_title("Ball motion", fontsize=18)
+# fig.axes[1].set_title("Ball motion", fontsize=18)
 fig.axes[1].set_xlabel(L"$t$", fontsize=18)
-fig.axes[1].set_ylabel(L"$x_4(t)$", fontsize=18)
+fig.axes[1].set_ylabel(L"$x_4(t)$, $x_3(t)$", fontsize=18)
 
 fig.axes[1].autoscale_view()
 fig.tight_layout()
