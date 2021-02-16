@@ -169,7 +169,7 @@ function step_constrained(m::Moreau)
         @objective(model, Min, 0)
     end
     @constraint(model, m.J*(u - m.uA) .== hJ * m.Δt)
-    @constraint(model, q .== _compute_mid_displacements(m.qM, m.uE, m.Δt))
+    @constraint(model, q .== _compute_mid_displacements(m.qM, u, m.Δt))
     optimize!(model)
     if !any( JuMP.termination_status(model) .== SUCCESS )
         @warn "termination status: $(JuMP.termination_status(model))."

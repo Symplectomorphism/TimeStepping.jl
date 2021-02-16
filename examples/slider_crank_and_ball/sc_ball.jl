@@ -19,6 +19,7 @@ const m4 = 1.0
 const J1 = 0.05
 const J2 = 0.07
 const g = 9.81
+final_time = 4.0
 q0 = [π/3; -π/4; 0.0; 1.0]
 u0 = [0.0; 0.0; 0.0; -0.5]
 
@@ -84,14 +85,14 @@ end
 
 # m = Moreau(gap, dynamics, loop, jac, jacdot, q0, u0)
 sc_ball = Integrator(gap, dynamics, loop, jac, jacdot, q0, u0; Δt=1e-3)
-integrate(sc_ball, 2.0)
+integrate(sc_ball, final_time)
 
 
 fig = figure(1, clear=true)
 fig.add_subplot(1,1,1)
 fig.axes[1].clear()
 fig.axes[1].plot(sc_ball.t, getindex.(sc_ball.q,4), "k", linewidth=2)
-fig.axes[1].plot(sc_ball.t, getindex.(sc_ball.q,3), "k", linewidth=2)
+fig.axes[1].plot(sc_ball.t, getindex.(sc_ball.q,3), "b", linewidth=2)
 
 # fig.axes[1].set_title("Ball motion", fontsize=18)
 fig.axes[1].set_xlabel(L"$t$", fontsize=18)
