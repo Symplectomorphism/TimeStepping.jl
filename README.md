@@ -17,7 +17,7 @@
 > return ϕ, J, Jdot
 
 4. Initialize the system by providing the gap and dynamics functions, and the initial conditions (for holonomic constraints, provide them, too).
-> bouncing_ball = Integrator(gap, dynamics, qA, uA; Δt=1e-3)
+> bouncing_ball = Integrator(gap, dynamics, qA, uA; Δt=1e-3)\
 > sc_ball = Integrator(gap, dynamics, loop, jac, jacdot, q0, u0; Δt=1e-3)
 
 5. Integrate the system until final_time
