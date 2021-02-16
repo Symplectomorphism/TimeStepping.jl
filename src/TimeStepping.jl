@@ -16,7 +16,7 @@ include("moreau.jl")
 include("integrator.jl")
 
 export my_f, derivative_of_my_f
-export Moreau, step
+export Moreau, step, step_constrained
 export Integrator, integrate
 
 end
