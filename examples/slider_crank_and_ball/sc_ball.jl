@@ -41,7 +41,7 @@ function loop(q::Vector)
 end
 
 function jac(q::Vector)
-    jac = zeros(Float64, 2, 4)
+    jac = zeros(Float32, 2, 4)
     jac[1,1] = -l1*sin(q[1])
     jac[1,2] = -l2*sin(q[2])
     jac[1,3] = -1
@@ -51,7 +51,7 @@ function jac(q::Vector)
 end
 
 function jacdot(q::Vector, u::Vector)
-    jacdot = zeros(Float64, 2, 4)
+    jacdot = zeros(Float32, 2, 4)
     jacdot[1,1] = -l1*cos(q[1])*u[1]
     jacdot[1,2] = -l2*cos(q[2])*u[2]
     jacdot[2,1] = -l1*sin(q[1])*u[1]
@@ -61,21 +61,21 @@ end
 
 
 function gap(q::Vector, u::Vector)
-    W = zeros(4,1)
+    W = zeros(Float32, 4,1)
     W[3,1] = -1.0
     W[4,1] = 1.0
     return [q[4]-q[3]-0.1], W
 end
 
 function dynamics(q::Vector, u::Vector)
-    M = zeros(Float64,4, 4)
+    M = zeros(Float32,4, 4)
     M[1,1] = 1/4*m1*l1*l1 + m2*l1*l1 + J1
     M[1,2] = M[2,1] = 1/2*m2*l1*l2*cos(q[1]-q[2])
     M[2,2] = 1/4*m2*l2*l2 + J2
     M[3,3] = m3
     M[4,4] = m4
 
-    h = zeros(Float64, 4)
+    h = zeros(Float32, 4)
     h[1] = -m2*sin(q[1]-q[2])u[1]*u[2] + 1/2*m2*sin(q[1]-q[2])*u[2]*u[2] + (1/2*m1+m2)*g*l1*cos(q[1])
     h[2] = m2*sin(q[1]-q[2])u[1]*u[2] - 1/2*m2*sin(q[1]-q[2])*u[1]*u[1] + m2*g*l1*cos(q[2])
     h[3] = 0.0
@@ -84,8 +84,8 @@ function dynamics(q::Vector, u::Vector)
 end
 
 # m = Moreau(gap, dynamics, loop, jac, jacdot, q0, u0)
-sc_ball = Integrator(gap, dynamics, loop, jac, jacdot, q0, u0; Δt=1e-3)
-integrate(sc_ball, final_time)
+sc_ball = Integrator(gap, dynamics, loop, jac, jacdot, convert.(Float32, q0), convert.(Float32, u0); Δt=1e-3)
+integrate(sc_ball, convert(Float32, final_time))
 
 
 fig = figure(1, clear=true)
