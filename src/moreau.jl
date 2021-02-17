@@ -1,33 +1,33 @@
 const MOI = MathOptInterface
 const SUCCESS = [MOI.OPTIMAL, MOI.LOCALLY_SOLVED, MOI.ALMOST_OPTIMAL, MOI.ALMOST_LOCALLY_SOLVED]
 
-mutable struct Moreau
+mutable struct Moreau{SpecializedType}
     dynamics::Function
     gap::Function                   # Gap function -- provide the force matrices
     hcon::Function                  # Holonomic constraint function
     jac::Function                   # Jacobian of hcon: del hcon / del q
     jacdot::Function                # Time-derivative of jac
-    M::Array{Float64, 2}
-    h::Array{Float64, 1}
-    ϕ::Array{Float64, 1}
-    J::Array{Float64, 2}
-    Jdot::Array{Float64, 2}
-    tA::Float64
-    tM::Float64
-    tE::Float64
-    qA::Array{Float64, 1}
-    uA::Array{Float64, 1}
-    qM::Array{Float64, 1}
-    qE::Array{Float64, 1}
-    uE::Array{Float64, 1}
-    g::Array{Float64, 1}            # Normal distance of contact
-    W::Array{Float64, 2}            # Jacobian transpose in the normal direction
-    Λ::Array{Float64, 1}            # Normal contact force
-    μ::Array{Float64, 1}            # Holonomic constraint forces
+    M::Array{SpecializedType, 2}
+    h::Array{SpecializedType, 1}
+    ϕ::Array{SpecializedType, 1}
+    J::Array{SpecializedType, 2}
+    Jdot::Array{SpecializedType, 2}
+    tA::SpecializedType
+    tM::SpecializedType
+    tE::SpecializedType
+    qA::Array{SpecializedType, 1}
+    uA::Array{SpecializedType, 1}
+    qM::Array{SpecializedType, 1}
+    qE::Array{SpecializedType, 1}
+    uE::Array{SpecializedType, 1}
+    g::Array{SpecializedType, 1}            # Normal distance of contact
+    W::Array{SpecializedType, 2}            # Jacobian transpose in the normal direction
+    Λ::Array{SpecializedType, 1}            # Normal contact force
+    μ::Array{SpecializedType, 1}            # Holonomic constraint forces
     H::SortedSet{Int64, Base.Order.ForwardOrdering} # Which contacts are active?
-    Δt::Float64
-    ε::Float64                      # Coefficient of restitution (normal dir.)
-    ϵ::Float64                      # Baumgarte stabilization constant
+    Δt::SpecializedType
+    ε::SpecializedType                      # Coefficient of restitution (normal dir.)
+    ϵ::SpecializedType                      # Baumgarte stabilization constant
 end
 
 """
@@ -35,33 +35,34 @@ n: degrees of freedom of the system
 m: number of unilateral constraints
 """
 
-function Moreau(gap::Function, dynamics::Function, q::Vector, u::Vector, Δt::Float64=1e-3)
+function Moreau(gap::Function, dynamics::Function, q::AbstractArray, u::AbstractArray, 
+        Δt::Wildcard=1e-3) where {Wildcard <: Real}
     qA = q
     uA = u
     n = length(qA)
     qM = _compute_mid_displacements(qA, uA, Δt)
     M, h = dynamics(qM, uA)
-    ϕ = Float64[]
-    J = Array{Float64, 2}(undef, 0, 0)
-    Jdot = Array{Float64, 2}(undef, 0, 0)
-    qE = zeros(Float64, n)
-    uE = zeros(Float64, n)
-    tA, tM, tE = zeros(Float64, 3)
+    ϕ = Wildcard[]
+    J = Array{Wildcard, 2}(undef, 0, 0)
+    Jdot = Array{Wildcard, 2}(undef, 0, 0)
+    qE = zeros(Wildcard, n)
+    uE = zeros(Wildcard, n)
+    tA, tM, tE = zeros(Wildcard, 3)
     tM = _compute_mid_time(tA, Δt)
     tE = _compute_mid_time(tM, Δt)
     ε = 0.5
     ϵ = 0.01
     g, W = gap(qA, uA)
     H = SortedSet(Int[])
-    Λ = zeros(Float64, length(H))
-    μ = zeros(Float64, length(ϕ))
+    Λ = zeros(Wildcard, length(H))
+    μ = zeros(Wildcard, length(ϕ))
 
-    Moreau(dynamics, gap, x->x, x->x, x->x,
+    Moreau{Wildcard}(dynamics, gap, x->x, x->x, x->x,
         M, h, ϕ, J, Jdot, tA, tM, tE, qA, uA, qM, qE, uE, g, W, Λ, μ, H, Δt, ε, ϵ)
 end
 
 function Moreau(gap::Function, dynamics::Function, hcon::Function, 
-        jac::Function, jacdot::Function, q::Vector, u::Vector, Δt::Float64=1e-3)
+        jac::Function, jacdot::Function, q::AbstractArray, u::AbstractArray, Δt::Wildcard=1e-3) where {Wildcard <: Real}
     qA = q
     uA = u
     n = length(qA)
@@ -70,19 +71,19 @@ function Moreau(gap::Function, dynamics::Function, hcon::Function,
     ϕ = hcon(qM)
     J = jac(qM)
     Jdot = jacdot(qM, uA)
-    qE = zeros(Float64, n)
-    uE = zeros(Float64, n)
-    tA, tM, tE = zeros(Float64, 3)
+    qE = zeros(Wildcard, n)
+    uE = zeros(Wildcard, n)
+    tA, tM, tE = zeros(Wildcard, 3)
     tM = _compute_mid_time(tA, Δt)
     tE = _compute_mid_time(tM, Δt)
     ε = 0.5
     ϵ = 0.01
     g, W = gap(qA, uA)
     H = SortedSet(Int[])
-    Λ = zeros(Float64, length(H))
-    μ = zeros(Float64, length(ϕ))
+    Λ = zeros(Wildcard, length(H))
+    μ = zeros(Wildcard, length(ϕ))
 
-    Moreau(dynamics, gap, hcon, jac, jacdot,
+    Moreau{Wildcard}(dynamics, gap, hcon, jac, jacdot,
         M, h, ϕ, J, Jdot, tA, tM, tE, qA, uA, qM, qE, uE, g, W, Λ, μ, H, Δt, ε, ϵ)
 end
 
@@ -91,7 +92,7 @@ function _compute_mid_time(t::Number, Δt::Number)
     return t + 1/2*Δt
 end
 
-function _compute_mid_displacements(q::Vector, u::Vector, Δt::Number)
+function _compute_mid_displacements(q::AbstractArray, u::AbstractArray, Δt::Number)
     return q + 1/2*Δt*u
 end
 
@@ -147,12 +148,9 @@ function step_unconstrained(m::Moreau)
         @constraint(model, ξ .>= 0)
         @objective(model, Min, dot(λ, ξ))
         """
-        ### This part needs to be modified for extra holonomic contraints of the 
-        ### form ϕ(q) = 0.
         A = m.W' * Minv * m.W
         b = m.W' * Minv * m.h * m.Δt + (1+m.ε) * m.W' * m.uA
         @constraint(model, b .+ A*λ .>= 0)
-        ###
         @constraint(model, m.M * (u - m.uA) .== m.W * λ + m.h * m.Δt)
         @objective(model, Min, dot(λ, b .+ A*λ))
     else
@@ -219,7 +217,7 @@ function step_constrained(m::Moreau)
     end
 end
 
-function set_state(m::Moreau, q::Vector, u::Vector)
+function set_state(m::Moreau, q::AbstractArray, u::AbstractArray)
     m.qA = q
     m.uA = u
     n = length(m.qA)
