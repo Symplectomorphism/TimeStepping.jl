@@ -20,3 +20,9 @@ include("three_bouncing_balls.jl")
         @test all(getindex.(three_bb.q,i) .>= -5e-3)
     end
 end
+
+@testset "Contact force tests" begin
+    for i = 1:3
+        @test minimum(getindex.(three_bb.Λ,i)) >= -1e-10
+    end
+end
