@@ -12,3 +12,11 @@ end
 
     @test all(energy.(bouncing_ball.q, bouncing_ball.u) .<= initial_energy)
 end
+
+include("three_bouncing_balls.jl")
+
+@testset "Multiple contact tests" begin
+    for i = 1:3
+        @test all(getindex.(three_bb.q,i) .>= -5e-3)
+    end
+end
