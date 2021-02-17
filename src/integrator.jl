@@ -1,4 +1,4 @@
-mutable struct Integrator{T}
+struct Integrator{T}
     t::Array{T, 1}
     q::Array{Array{T, 1}, 1}
     u::Array{Array{T, 1}, 1}
@@ -8,7 +8,8 @@ mutable struct Integrator{T}
 end
 
 
-function Integrator(gap::Function, dynamics::Function, q0::Vector, u0::Vector; Δt::S=1e-3) where {S <: Real}
+function Integrator(gap::Function, dynamics::Function, q0::AbstractArray, 
+        u0::AbstractArray; Δt::S=1e-3) where {S <: Real}
     t = Array{S, 1}()
     q = Array{Array{S, 1},1}()
     u = Array{Array{S, 1},1}()
@@ -23,7 +24,7 @@ end
 
 
 function Integrator(gap::Function, dynamics::Function, hcon::Function, 
-    jac::Function, jacdot::Function, q0::Vector, u0::Vector; Δt::S=1e-3) where {S <: Real}
+        jac::Function, jacdot::Function, q0::AbstractArray, u0::AbstractArray; Δt::S=1e-3) where {S <: Real}
     t = Array{S, 1}()
     q = Array{Array{S, 1},1}()
     u = Array{Array{S, 1},1}()

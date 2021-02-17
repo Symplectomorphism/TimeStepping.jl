@@ -35,7 +35,7 @@ n: degrees of freedom of the system
 m: number of unilateral constraints
 """
 
-function Moreau(gap::Function, dynamics::Function, q::Vector, u::Vector, 
+function Moreau(gap::Function, dynamics::Function, q::AbstractArray, u::AbstractArray, 
         Δt::Wildcard=1e-3) where {Wildcard <: Real}
     qA = q
     uA = u
@@ -62,7 +62,7 @@ function Moreau(gap::Function, dynamics::Function, q::Vector, u::Vector,
 end
 
 function Moreau(gap::Function, dynamics::Function, hcon::Function, 
-        jac::Function, jacdot::Function, q::Vector, u::Vector, Δt::Wildcard=1e-3) where {Wildcard <: Real}
+        jac::Function, jacdot::Function, q::AbstractArray, u::AbstractArray, Δt::Wildcard=1e-3) where {Wildcard <: Real}
     qA = q
     uA = u
     n = length(qA)
@@ -92,7 +92,7 @@ function _compute_mid_time(t::Number, Δt::Number)
     return t + 1/2*Δt
 end
 
-function _compute_mid_displacements(q::Vector, u::Vector, Δt::Number)
+function _compute_mid_displacements(q::AbstractArray, u::AbstractArray, Δt::Number)
     return q + 1/2*Δt*u
 end
 
@@ -217,7 +217,7 @@ function step_constrained(m::Moreau)
     end
 end
 
-function set_state(m::Moreau, q::Vector, u::Vector)
+function set_state(m::Moreau, q::AbstractArray, u::AbstractArray)
     m.qA = q
     m.uA = u
     n = length(m.qA)

@@ -11,23 +11,23 @@ using LinearAlgebra
 using PyPlot
 using TimeStepping
 
-mass = 1.0
-g = 9.81
+const mass = 1.0
+const g = 9.81
 qA = [0.0; 1.0]
 uA = [1.0; 2.0]
 
-function gap(q::Vector, u::Vector)
-    W = zeros(2,1)
+function gap(q::AbstractArray, u::AbstractArray)
+    W = zeros(Float32, 2,1)
     W[1,1] = 0.0
     W[2,1] = 1.0
     return [q[2]], W
 end
 
-function dynamics(q::Vector, u::Vector)
-    return diagm(ones(2)*mass), [0; -mass*g]
+function dynamics(q::AbstractArray, u::AbstractArray)
+    return diagm(ones(Float32, 2)*mass), [0; -mass*g]
 end
 
-bouncing_ball = Integrator(gap, dynamics, qA, uA; Δt=1e-3)
+bouncing_ball = Integrator(gap, dynamics, convert.(Float32, qA), convert.(Float32, uA); Δt=1e-3)
 integrate(bouncing_ball, 2.0)
 
 
