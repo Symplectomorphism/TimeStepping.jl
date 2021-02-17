@@ -21,8 +21,8 @@ mutable struct Moreau{SpecializedType}
     qE::Array{SpecializedType, 1}
     uE::Array{SpecializedType, 1}
     g::Array{SpecializedType, 1}            # Normal distance of contact
-    W::Array{SpecializedType, 2}            # Jacobian transpose in the normal direction (does not change)
-    Wn::Array{SpecializedType, 2}           # Jacobian transpose in the normal direction
+    W::Array{SpecializedType, 2}            # Jacobian transpose in the normal direction (changes during integration)
+    Wn::Array{SpecializedType, 2}           # Jacobian transpose in the normal direction (fixed, does not change)
     Λ::Array{SpecializedType, 1}            # Normal contact force
     μ::Array{SpecializedType, 1}            # Holonomic constraint forces
     H::SortedSet{Int64, Base.Order.ForwardOrdering} # Which contacts are active?
@@ -118,13 +118,10 @@ end
 
 function _update_force_matrix(m::Moreau) 
     n = length(m.qA)
-    # temp = zeros(eltype(m.qA), n, 0)
     m.W = zeros(eltype(m.qA), n, 0)
     for i in m.H
-        # temp = hcat(temp, m.W[:,i])
         m.W = hcat(m.W, m.Wn[:,i])
     end
-    # m.W = temp
     m.Λ = zeros(eltype(m.qA), length(m.g))
 end
 
