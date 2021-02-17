@@ -117,7 +117,7 @@ function _update_force_matrix(m::Moreau)
     n = length(m.qA)
     temp = zeros(Float64, n, 0)
     for i in m.H
-        temp = hcat(temp, m.W[:,1])
+        temp = hcat(temp, m.W[:,i])
     end
     m.W = temp
     m.Λ = zeros(Float64, length(m.g))
