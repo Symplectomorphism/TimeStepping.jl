@@ -21,7 +21,8 @@ mutable struct Moreau{SpecializedType}
     qE::Array{SpecializedType, 1}
     uE::Array{SpecializedType, 1}
     g::Array{SpecializedType, 1}            # Normal distance of contact
-    W::Array{SpecializedType, 2}            # Jacobian transpose in the normal direction
+    W::Array{SpecializedType, 2}            # Jacobian transpose in the normal direction (does not change)
+    Wn::Array{SpecializedType, 2}           # Jacobian transpose in the normal direction
     Λ::Array{SpecializedType, 1}            # Normal contact force
     μ::Array{SpecializedType, 1}            # Holonomic constraint forces
     H::SortedSet{Int64, Base.Order.ForwardOrdering} # Which contacts are active?
@@ -52,13 +53,14 @@ function Moreau(gap::Function, dynamics::Function, q::AbstractArray, u::Abstract
     tE = _compute_mid_time(tM, Δt)
     ε = 0.5
     ϵ = 0.01
-    g, W = gap(qA, uA)
+    g, Wn = gap(qA, uA)
+    W = Wn
     H = SortedSet(Int[])
     Λ = zeros(Wildcard, length(H))
     μ = zeros(Wildcard, length(ϕ))
 
     Moreau{Wildcard}(dynamics, gap, x->x, x->x, x->x,
-        M, h, ϕ, J, Jdot, tA, tM, tE, qA, uA, qM, qE, uE, g, W, Λ, μ, H, Δt, ε, ϵ)
+        M, h, ϕ, J, Jdot, tA, tM, tE, qA, uA, qM, qE, uE, g, W, Wn, Λ, μ, H, Δt, ε, ϵ)
 end
 
 function Moreau(gap::Function, dynamics::Function, hcon::Function, 
@@ -78,21 +80,22 @@ function Moreau(gap::Function, dynamics::Function, hcon::Function,
     tE = _compute_mid_time(tM, Δt)
     ε = 0.5
     ϵ = 0.01
-    g, W = gap(qA, uA)
+    g, Wn = gap(qA, uA)
+    W = Wn
     H = SortedSet(Int[])
     Λ = zeros(Wildcard, length(H))
     μ = zeros(Wildcard, length(ϕ))
 
     Moreau{Wildcard}(dynamics, gap, hcon, jac, jacdot,
-        M, h, ϕ, J, Jdot, tA, tM, tE, qA, uA, qM, qE, uE, g, W, Λ, μ, H, Δt, ε, ϵ)
+        M, h, ϕ, J, Jdot, tA, tM, tE, qA, uA, qM, qE, uE, g, W, Wn, Λ, μ, H, Δt, ε, ϵ)
 end
 
 
-function _compute_mid_time(t::Number, Δt::Number)
+function _compute_mid_time(t::Number, Δt::Real)
     return t + 1/2*Δt
 end
 
-function _compute_mid_displacements(q::AbstractArray, u::AbstractArray, Δt::Number)
+function _compute_mid_displacements(q::AbstractArray, u::AbstractArray, Δt::Real)
     return q + 1/2*Δt*u
 end
 
@@ -113,14 +116,16 @@ function _compute_index_set(m::Moreau)
     _update_force_matrix(m)
 end
 
-function _update_force_matrix(m::Moreau)
+function _update_force_matrix(m::Moreau) 
     n = length(m.qA)
-    temp = zeros(Float64, n, 0)
+    # temp = zeros(eltype(m.qA), n, 0)
+    m.W = zeros(eltype(m.qA), n, 0)
     for i in m.H
-        temp = hcat(temp, m.W[:,i])
+        # temp = hcat(temp, m.W[:,i])
+        m.W = hcat(m.W, m.Wn[:,i])
     end
-    m.W = temp
-    m.Λ = zeros(Float64, length(m.g))
+    # m.W = temp
+    m.Λ = zeros(eltype(m.qA), length(m.g))
 end
 
 function step(m::Moreau)
@@ -131,7 +136,6 @@ function step(m::Moreau)
     end
 end
 
-# TODO: I do not think this handles multiple contacts well at all. Test and improve!
 function step_unconstrained(m::Moreau)
     _compute_index_set(m)
     Minv = inv(m.M)
@@ -141,7 +145,7 @@ function step_unconstrained(m::Moreau)
     set_optimizer_attribute(model, "INTPNT_CO_TOL_DFEAS", 1e-7)
     @variable(model, q[1:length(m.qA)])
     @variable(model, u[1:length(m.uA)])
-    @variable(model, λ[1:length(m.Λ)] >= 0)
+    @variable(model, λ[1:length(m.H)] >= 0)
 
     if length(m.W) != 0
         """ The following does not work because of positive semidefiniteness...
@@ -167,9 +171,17 @@ function step_unconstrained(m::Moreau)
         m.qE = JuMP.value.(q)
         m.uE = JuMP.value.(u)
         if length(m.W) != 0
-            m.Λ = JuMP.value.(λ)
+            i = 1
+            for k in 1:length(m.g)
+                if k in m.H
+                    m.Λ[k] = JuMP.value.(λ)[i]
+                    i += 1
+                else
+                    m.Λ[k] = 0.0
+                end
+            end
         else
-            m.Λ = zeros(Float64, length(m.g))
+            m.Λ = zeros(eltype(m.qA), length(m.g))
         end
     end
 end
@@ -185,7 +197,7 @@ function step_constrained(m::Moreau)
     set_optimizer_attribute(model, "INTPNT_CO_TOL_DFEAS", 1e-7)
     @variable(model, q[1:length(m.qA)])
     @variable(model, u[1:length(m.uA)])
-    @variable(model, λ[1:length(m.Λ)] >= 0)
+    @variable(model, λ[1:length(m.H)] >= 0)
 
     if length(m.W) != 0
         A = m.W' * Minv * ( I - m.J' * Mhat * m.J * Minv ) * m.W
@@ -209,10 +221,18 @@ function step_constrained(m::Moreau)
         m.qE = JuMP.value.(q)
         m.uE = JuMP.value.(u)
         if length(m.W) != 0
-            m.Λ = JuMP.value.(λ)
+            i = 1
+            for k in 1:length(m.g)
+                if k in m.H
+                    m.Λ[k] = JuMP.value.(λ)[i]
+                    i += 1
+                else
+                    m.Λ[k] = 0.0
+                end
+            end
             m.μ = Mhat * ( hJ - m.J * Minv * m.h - 1/m.Δt * m.J * Minv * m.W * m.Λ )
         else
-            m.Λ = zeros(Float64, length(m.g))
+            m.Λ = zeros(eltype(m.qA), length(m.g))
             m.μ = Mhat * ( hJ - m.J * Minv * m.h )
         end
     end

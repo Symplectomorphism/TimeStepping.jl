@@ -9,7 +9,7 @@ end
 
 
 function Integrator(gap::Function, dynamics::Function, q0::AbstractArray, 
-        u0::AbstractArray; Δt::S=1e-3) where {S <: Real}
+        u0::AbstractArray; Δt::S=1e-3*1f0) where {S <: Real}
     t = Array{S, 1}()
     q = Array{Array{S, 1},1}()
     u = Array{Array{S, 1},1}()
@@ -18,6 +18,7 @@ function Integrator(gap::Function, dynamics::Function, q0::AbstractArray,
     push!(q, q0)
     push!(u, u0)
     m = Moreau(gap, dynamics, q[1], u[1], Δt)
+    set_state(m, q0, u0)
 
     Integrator{S}(t, q, u, Λ, m, Δt)
 end
@@ -33,6 +34,7 @@ function Integrator(gap::Function, dynamics::Function, hcon::Function,
     push!(q, q0)
     push!(u, u0)
     m = Moreau(gap, dynamics, hcon, jac, jacdot, q[1], u[1], Δt)
+    set_state(m, q0, u0)
 
     Integrator{S}(t, q, u, Λ, m, Δt)
 end

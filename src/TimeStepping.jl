@@ -12,7 +12,7 @@ import MathOptInterface
 include("moreau.jl")
 include("integrator.jl")
 
-export Moreau, step
+export Moreau, step, set_state
 export Integrator, integrate
 
 end
