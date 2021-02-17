@@ -1,3 +1,3 @@
 using SafeTestsets
 
-@safetestset "My f tests" begin include("my_f_tests.jl") end
+@safetestset "Unconstrained tests" begin include("unconstrained_tests.jl") end
