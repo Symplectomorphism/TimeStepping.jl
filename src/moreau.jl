@@ -131,7 +131,7 @@ function step(m::Moreau)
     end
 end
 
-# TODO: I do not thing this handles multiple contacts well at all. Test and improve!
+# TODO: I do not think this handles multiple contacts well at all. Test and improve!
 function step_unconstrained(m::Moreau)
     _compute_index_set(m)
     Minv = inv(m.M)
