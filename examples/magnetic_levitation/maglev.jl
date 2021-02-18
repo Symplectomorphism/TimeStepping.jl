@@ -16,8 +16,8 @@ const g = 9.81
 const C = 1.4e-4
 const L1 = 0.65
 const R = 28.7
-final_time = 7.0
-q0 = convert.(Float32, [0.2])           # Start the ball on the pedestal,
+final_time = 2.0
+q0 = convert.(Float32, [0.19])           # Start the ball on the pedestal,
 u0 = convert.(Float32, [0.0])           # with zero velocity
 extra_state0 = convert.(Float32, [0.0]) # and zero current.
 
@@ -31,11 +31,11 @@ end
 
 function extradynamics(extra_state::AbstractArray, q::AbstractArray, u::AbstractArray)
     L = L1 + 2*C / q[1]
-    voltage_limit = 0.5
-    v = -10.0*(q[1]-0.1) - 10.0*u[1]
+    voltage_limit = 1.0
+    v = -25.0*(q[1]-0.1) - 10.0*u[1]
     v = clamp(v, -voltage_limit, voltage_limit)
     i_ref = q[1]*sqrt( m/C*(g - v) )
-    control_input = R * i_ref
+    control_input = R * i_ref - 2 * C * (u[1]*extra_state[1] / q[1] / q[1]) # second term cancels out the nonlinear dynamics
     return (-R/L * extra_state[1] + 2 * C / L * (u[1]*extra_state[1] / q[1] / q[1]) + 1/L*control_input) * ones(Float32, 1)
 end
 
