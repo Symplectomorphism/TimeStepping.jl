@@ -78,7 +78,7 @@ function integrate(system::Integrator, extradynamics::Function, final_time::S) w
         push!(system.t, time)
         step(system.m)
 
-        current_limit = 50.0
+        current_limit = 10.0
         next_extra_state = system.extra_state[end] + 
             system.Δt * extradynamics(system.extra_state[end], system.q[end], system.u[end])
         push!(system.extra_state, clamp.(next_extra_state, -current_limit, current_limit))
