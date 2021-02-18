@@ -17,7 +17,7 @@ const C = 1.4e-4
 const L1 = 0.65
 const R = 28.7
 final_time = 2.0
-q0 = convert.(Float32, [0.19])           # Start the ball on the pedestal,
+q0 = convert.(Float32, [0.19])          # Start the ball almost on the pedestal,
 u0 = convert.(Float32, [0.0])           # with zero velocity
 extra_state0 = convert.(Float32, [0.0]) # and zero current.
 
