@@ -20,6 +20,7 @@ mutable struct Moreau{SpecializedType}
     qM::Array{SpecializedType, 1}
     qE::Array{SpecializedType, 1}
     uE::Array{SpecializedType, 1}
+    extra_state::Array{SpecializedType, 1}  
     g::Array{SpecializedType, 1}            # Normal distance of contact
     W::Array{SpecializedType, 2}            # Jacobian transpose in the normal direction (changes during integration)
     Wn::Array{SpecializedType, 2}           # Jacobian transpose in the normal direction (fixed, does not change)
@@ -40,6 +41,7 @@ function Moreau(gap::Function, dynamics::Function, q::AbstractArray, u::Abstract
         Δt::Wildcard=1e-3) where {Wildcard <: Real}
     qA = q
     uA = u
+    extra_state = Wildcard[]
     n = length(qA)
     qM = _compute_mid_displacements(qA, uA, Δt)
     M, h = dynamics(qM, uA)
@@ -60,13 +62,15 @@ function Moreau(gap::Function, dynamics::Function, q::AbstractArray, u::Abstract
     μ = zeros(Wildcard, length(ϕ))
 
     Moreau{Wildcard}(dynamics, gap, x->x, x->x, x->x,
-        M, h, ϕ, J, Jdot, tA, tM, tE, qA, uA, qM, qE, uE, g, W, Wn, Λ, μ, H, Δt, ε, ϵ)
+        M, h, ϕ, J, Jdot, tA, tM, tE, qA, uA, qM, qE, uE, extra_state, 
+        g, W, Wn, Λ, μ, H, Δt, ε, ϵ)
 end
 
 function Moreau(gap::Function, dynamics::Function, hcon::Function, 
         jac::Function, jacdot::Function, q::AbstractArray, u::AbstractArray, Δt::Wildcard=1e-3) where {Wildcard <: Real}
     qA = q
     uA = u
+    extra_state = Wildcard[]
     n = length(qA)
     qM = _compute_mid_displacements(qA, uA, Δt)
     M, h = dynamics(qM, uA)
@@ -87,7 +91,37 @@ function Moreau(gap::Function, dynamics::Function, hcon::Function,
     μ = zeros(Wildcard, length(ϕ))
 
     Moreau{Wildcard}(dynamics, gap, hcon, jac, jacdot,
-        M, h, ϕ, J, Jdot, tA, tM, tE, qA, uA, qM, qE, uE, g, W, Wn, Λ, μ, H, Δt, ε, ϵ)
+        M, h, ϕ, J, Jdot, tA, tM, tE, qA, uA, qM, qE, uE, extra_state, 
+        g, W, Wn, Λ, μ, H, Δt, ε, ϵ)
+end
+
+
+function Moreau(gap::Function, dynamics::Function, q::AbstractArray, u::AbstractArray, 
+    extra_state::AbstractArray, Δt::Wildcard=1e-3) where {Wildcard <: Real}
+    qA = q
+    uA = u
+    n = length(qA)
+    qM = _compute_mid_displacements(qA, uA, Δt)
+    M, h = dynamics(qM, uA, extra_state)
+    ϕ = Wildcard[]
+    J = Array{Wildcard, 2}(undef, 0, 0)
+    Jdot = Array{Wildcard, 2}(undef, 0, 0)
+    qE = zeros(Wildcard, n)
+    uE = zeros(Wildcard, n)
+    tA, tM, tE = zeros(Wildcard, 3)
+    tM = _compute_mid_time(tA, Δt)
+    tE = _compute_mid_time(tM, Δt)
+    ε = 0.1
+    ϵ = 0.01
+    g, Wn = gap(qA, uA)
+    W = Wn
+    H = SortedSet(Int[])
+    Λ = zeros(Wildcard, length(H))
+    μ = zeros(Wildcard, length(ϕ))
+
+    Moreau{Wildcard}(dynamics, gap, x->x, x->x, x->x,
+        M, h, ϕ, J, Jdot, tA, tM, tE, qA, uA, qM, qE, uE, extra_state, 
+        g, W, Wn, Λ, μ, H, Δt, ε, ϵ)
 end
 
 
@@ -241,6 +275,22 @@ function set_state(m::Moreau, q::AbstractArray, u::AbstractArray)
     n = length(m.qA)
     m.qM = _compute_mid_displacements(m.qA, m.uA, m.Δt)
     m.M, m.h = m.dynamics(m.qM, m.uA)
+    m.g, m.W = m.gap(m.qM, m.uA)
+    if !isempty(m.ϕ)
+        m.ϕ = m.hcon(m.qM)
+        m.J = m.jac(m.qM)
+        m.Jdot = m.jacdot(m.qM, m.uA)
+    end
+    _compute_index_set(m)
+end
+
+function set_state(m::Moreau, q::AbstractArray, u::AbstractArray, extra_state::AbstractArray)
+    m.qA = q
+    m.uA = u
+    m.extra_state = extra_state
+    n = length(m.qA)
+    m.qM = _compute_mid_displacements(m.qA, m.uA, m.Δt)
+    m.M, m.h = m.dynamics(m.qM, m.uA, m.extra_state)
     m.g, m.W = m.gap(m.qM, m.uA)
     if !isempty(m.ϕ)
         m.ϕ = m.hcon(m.qM)
