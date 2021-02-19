@@ -87,7 +87,7 @@ fig.axes[3].set_ylabel(L"$i(t)$", fontsize=18)
 fig.axes[4].set_ylabel(L"$\xi_3(t)$", fontsize=18)
 
 # fig.axes[1].set_title("Magnetic levitation", fontsize=18)
-# fig.suptitle("Magnetic levitation", fontsize=18)
+fig.suptitle("Magnetic levitation", fontsize=18)
 # fig.axes[4].legend(loc="best", fontsize="x-large")
 
 for i = 1:4
