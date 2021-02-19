@@ -45,10 +45,10 @@ function fl_controller(extra_state::AbstractArray, q::AbstractArray, u::Abstract
     fx = -4*C*C/m/L*x[2]*(x[3]^2)/(x[1]^4) + 2*R*C/m/L*(x[3]^2)/(x[1]^2) + 
         2*C/m*x[2]*(x[3]^2)/(x[1]^3)
     gx = -2*C/m/L*x[3]/(x[1]^2)
-    p = 4.6022850                # p = 4.6022850 just grazes the pedestal with 
-                                 #          voltage_limit = 165.54182708519832
-    # p = 2.5
-    k = [p^3, 3*p^2, 3*p]
+    p = 4.6022850*ones(Float32, 3) # p = 4.6022850 just grazes the pedestal with 
+    #                              #          voltage_limit = 165.54182708519832
+    # p = [1, 5, 10.]
+    k = [prod(p), p[1]*p[2]+p[1]*p[3]+p[2]*p[3], sum(p)]
     w = dot(-k, ξ)
     return 1/gx*(w - fx)
 end
@@ -119,3 +119,12 @@ for i = 1:4
 end
 fig.suptitle("Magnetic levitation", fontsize=18)
 fig.tight_layout()
+
+
+# fig = figure(2, clear=true, figsize=(12.80,12.80))
+# fig.add_subplot(1,1,1)
+# fig.axes[1].clear()
+# fig.axes[1].plot(maglev.t, 
+#     getindex.(maglev.q,1) .- getindex.(maglev.u,1) .+  getindex.(maglev.extra_state,1),
+#     linewidth=2,
+#     label="eigvector" )
