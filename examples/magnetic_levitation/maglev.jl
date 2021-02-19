@@ -12,8 +12,8 @@ using PyPlot
 using TimeStepping
 
 par = Dict{Symbol, Float32}(
-    :m=>0.01187, :g=>9.81, :C=>1.4e-4, :L1=>0.65, :R=>28.7, :qd=>0.1, :tf=>4.0,
-    :Δt=>1e-3, :ε=>0.1
+    :m=>0.01187, :g=>9.81, :C=>1.4e-4, :L1=>0.65, :R=>28.7, :qd=>0.1, :tf=>8.0,
+    :Δt=>1e-3, :ε=>0.8
 )
 
 δ = convert.(Float32, [0.05, 0.20])       # Hard stops of the maglev system.
@@ -45,10 +45,10 @@ function fl_controller(extra_state::AbstractArray, q::AbstractArray, u::Abstract
     fx = -4*C*C/m/L*x[2]*(x[3]^2)/(x[1]^4) + 2*R*C/m/L*(x[3]^2)/(x[1]^2) + 
         2*C/m*x[2]*(x[3]^2)/(x[1]^3)
     gx = -2*C/m/L*x[3]/(x[1]^2)
-    p = 4.6022850*ones(Float32, 3) # p = 4.6022850 just grazes the pedestal with 
+    # p = 4.6022850*ones(Float32, 3) # p = 4.6022850 just grazes the pedestal with 
     #                              #          voltage_limit = 165.54182708519832
-    # p = [1, 5, 10.]
-    k = [prod(p), p[1]*p[2]+p[1]*p[3]+p[2]*p[3], sum(p)]
+    p = [0.5+4im, 0.5-4im, 1.0]
+    k = real.( [prod(p), p[1]*p[2]+p[1]*p[3]+p[2]*p[3], sum(p)] )
     w = dot(-k, ξ)
     return 1/gx*(w - fx)
 end
@@ -65,7 +65,8 @@ function curr_cmd_controller(extra_state::AbstractArray, q::AbstractArray, u::Ab
 
     v = -25.0*(x[1]-qd) - 10.0*x[2]
     i_ref = x[1]*sqrt( m/C*(g - v) )
-    return R * i_ref - 2 * C * (x[2]*x[3] / x[1] / x[1]) # second term cancels out the nonlinear dynamics
+    voltage_ref = R * i_ref - 2 * C * (x[2]*x[3] / x[1] / x[1]) # second term cancels out the nonlinear dynamics
+    return voltage_ref - 0.0*(x[3] - i_ref)
 end
 
 function extradynamics(extra_state::AbstractArray, q::AbstractArray, u::AbstractArray)
@@ -77,13 +78,15 @@ function extradynamics(extra_state::AbstractArray, q::AbstractArray, u::Abstract
     qd = par[:qd]
 
     L = L1 + 2*C / q[1]
-    voltage_limit = 165.54182708519832      # This is the minimum voltage needed to pull the ball from δ[2] = 0.2
+    voltage_limit = par[:R]*δ[2]*√(par[:m]*par[:g]/par[:C])  # This is the minimum voltage needed to pull the ball from δ[2] = 0.2
+    # voltage_limit *= 15/16
     
-    control_input = clamp(fl_controller(extra_state, q, u), -voltage_limit, voltage_limit)
-    # control_input = clamp(curr_cmd_controller(extra_state, q, u), -voltage_limit, voltage_limit)
+    ctrl_input = fl_controller(extra_state, q, u)
+    # ctrl_input = curr_cmd_controller(extra_state, q, u)
+    ctrl_input = clamp(ctrl_input, -voltage_limit, voltage_limit)
 
     return (-R/L * extra_state[1] + 2 * C / L * (u[1]*extra_state[1] / q[1] / q[1]) 
-        + 1/L*control_input) * ones(Float32, 1)
+        + 1/L*ctrl_input) * ones(Float32, 1)
 end
 
 maglev = Integrator(gap, dynamics, q0, u0, extra_state0, Δt=par[:Δt], ε=par[:ε])
