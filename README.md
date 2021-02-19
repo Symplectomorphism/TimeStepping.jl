@@ -21,7 +21,7 @@
 
 5. Initialize the system by providing the gap and dynamics functions, and the initial conditions (for holonomic constraints, provide them, too).
 > bouncing_ball = Integrator(gap, dynamics, qA, uA; Δt=1e-3)\
-> sc_ball = Integrator(gap, dynamics, loop, jac, jacdot, q0, u0; Δt=1e-3)
+> sc_ball = Integrator(gap, dynamics, loop, jac, jacdot, q0, u0; Δt=1e-3)\
 > maglev = Integrator(gap, dynamics, q0, u0, extra_state0); Δt=1e-3)
 
 6. Integrate the system until final_time
