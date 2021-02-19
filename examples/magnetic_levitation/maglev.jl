@@ -35,7 +35,7 @@ end
 function extradynamics(extra_state::AbstractArray, q::AbstractArray, u::AbstractArray)
     x = (q[1], u[1], extra_state[1])
     ξ = (x[1]-qd, x[2], g - C/m*(x[3]/x[1])^2)
-    voltage_limit = 165.55595
+    voltage_limit = 165.54182708519832      # This is the minimum voltage needed to pull the ball from δ[2] = 0.2
     L = L1 + 2*C / x[1]
 
     # ## Formulate the controller (could be put in another function)
@@ -48,7 +48,7 @@ function extradynamics(extra_state::AbstractArray, q::AbstractArray, u::Abstract
     ## Feedback Linearization controller
     fx = -4*C*C/m/L*x[2]*(x[3]^2)/(x[1]^4) + 2*R*C/m/L*(x[3]^2)/(x[1]^2) + 2*C/m*x[2]*(x[3]^2)/(x[1]^3)
     gx = -2*C/m/L*x[3]/(x[1]^2)
-    p = 4.6019                # p = 4.59225837 just grazes the pedestal with voltage_limit = 166.0
+    p = 4.6022850                # p = 4.6022850 just grazes the pedestal with voltage_limit = 165.54182708519832
     # p = 2.5
     k = [p^3, 3*p^2, 3*p]
     w = dot(-k, ξ)
