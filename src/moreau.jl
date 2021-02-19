@@ -111,7 +111,7 @@ function Moreau(gap::Function, dynamics::Function, q::AbstractArray, u::Abstract
     tA, tM, tE = zeros(Wildcard, 3)
     tM = _compute_mid_time(tA, Δt)
     tE = _compute_mid_time(tM, Δt)
-    ε = 0.1
+    ε = 0.1*0
     ϵ = 0.01
     g, Wn = gap(qA, uA)
     W = Wn
