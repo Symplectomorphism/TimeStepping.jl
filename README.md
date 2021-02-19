@@ -25,3 +25,5 @@
 
 ### Examples
 Examples are provided within the _examples_ folder.
+
+![Image](examples/magnetic_levitation/maglev_fb.png)
