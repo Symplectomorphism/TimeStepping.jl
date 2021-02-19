@@ -86,7 +86,8 @@ function dynamics(q::AbstractArray, u::AbstractArray)
 end
 
 # m = Moreau(gap, dynamics, loop, jac, jacdot, q0, u0)
-sc_ball = Integrator(gap, dynamics, loop, jac, jacdot, convert.(Float32, q0), convert.(Float32, u0); Δt=1e-3)
+sc_ball = Integrator(gap, dynamics, loop, jac, jacdot, convert.(Float32, q0), 
+    convert.(Float32, u0); Δt=1e-3, ε=0.0)
 integrate(sc_ball, convert(Float32, final_time))
 
 
