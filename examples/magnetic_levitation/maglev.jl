@@ -19,7 +19,7 @@ const R = 28.7
 const qd = 0.1                          # desired stabilization height
 δ = convert.(Float32, [0.05, 0.20])   # Hard stops of the maglev system.
 final_time = 5.0
-q0 = convert.(Float32, [δ[2]])              # Initial ball position
+q0 = convert.(Float32, [δ[1]])              # Initial ball position
 u0 = convert.(Float32, [0.0])               # Initial ball velocity
 extra_state0 = convert.(Float32, [0.0])   # Initial magnet current    (5.784 to lift-off)
 
@@ -47,7 +47,10 @@ function extradynamics(extra_state::AbstractArray, q::AbstractArray, u::Abstract
     ## Feedback Linearization controller
     fx = -4*C*C/m/L*x[2]*(x[3]^2)/(x[1]^4) + 2*R*C/m/L*(x[3]^2)/(x[1]^2) + 2*C/m*x[2]*(x[3]^2)/(x[1]^3)
     gx = -2*C/m/L*x[3]/(x[1]^2)
-    w = -dot([1000, 400.0, 100], ξ)
+    p = 2.0
+    k = [p^3, 3*p^2, 3*p]
+    # k = [1000, 400.0, 100]      # Worse gains.
+    w = dot(-k, ξ)
     control_input = 1/gx*(w - fx)
     ## end feedback-linearization controller
 
