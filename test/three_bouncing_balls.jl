@@ -25,7 +25,7 @@ function dynamics(q::AbstractArray, u::AbstractArray)
     return convert.(Float32, [m1 0 0; 0 m2 0; 0 0 m3]), convert.(Float32, [-m1*g; -m2*g; -m3*g])
 end
 
-three_bb = Integrator(gap, dynamics, convert.(Float32, q0), convert.(Float32, u0); Δt=convert(Float32, 1e-3))
+three_bb = Integrator(gap, dynamics, convert.(Float32, q0), convert.(Float32, u0); Δt=convert(Float32, 1e-3), ε=0.5f0)
 integrate(three_bb, final_time)
 
 

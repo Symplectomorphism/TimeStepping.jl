@@ -27,7 +27,8 @@ function dynamics(q::AbstractArray, u::AbstractArray)
     return diagm(ones(Float32, 2)*mass), [0; -mass*g]
 end
 
-bouncing_ball = Integrator(gap, dynamics, convert.(Float32, qA), convert.(Float32, uA); Δt=1e-3)
+bouncing_ball = Integrator(gap, dynamics, convert.(Float32, qA), 
+    convert.(Float32, uA); Δt=1e-3, ε=0.5)
 integrate(bouncing_ball, 2.0)
 
 

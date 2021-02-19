@@ -38,7 +38,7 @@ m: number of unilateral constraints
 """
 
 function Moreau(gap::Function, dynamics::Function, q::AbstractArray, u::AbstractArray, 
-        Δt::Wildcard=1e-3) where {Wildcard <: Real}
+        Δt::Wildcard=1e-3, ε::Wildcard=0.5) where {Wildcard <: Real}
     qA = q
     uA = u
     extra_state = Wildcard[]
@@ -53,7 +53,6 @@ function Moreau(gap::Function, dynamics::Function, q::AbstractArray, u::Abstract
     tA, tM, tE = zeros(Wildcard, 3)
     tM = _compute_mid_time(tA, Δt)
     tE = _compute_mid_time(tM, Δt)
-    ε = 0.5
     ϵ = 0.01
     g, Wn = gap(qA, uA)
     W = Wn
@@ -67,7 +66,8 @@ function Moreau(gap::Function, dynamics::Function, q::AbstractArray, u::Abstract
 end
 
 function Moreau(gap::Function, dynamics::Function, hcon::Function, 
-        jac::Function, jacdot::Function, q::AbstractArray, u::AbstractArray, Δt::Wildcard=1e-3) where {Wildcard <: Real}
+        jac::Function, jacdot::Function, q::AbstractArray, u::AbstractArray, 
+        Δt::Wildcard=1e-3, ε::Wildcard=0.5) where {Wildcard <: Real}
     qA = q
     uA = u
     extra_state = Wildcard[]
@@ -82,7 +82,6 @@ function Moreau(gap::Function, dynamics::Function, hcon::Function,
     tA, tM, tE = zeros(Wildcard, 3)
     tM = _compute_mid_time(tA, Δt)
     tE = _compute_mid_time(tM, Δt)
-    ε = 0.5
     ϵ = 0.01
     g, Wn = gap(qA, uA)
     W = Wn
@@ -97,7 +96,7 @@ end
 
 
 function Moreau(gap::Function, dynamics::Function, q::AbstractArray, u::AbstractArray, 
-    extra_state::AbstractArray, Δt::Wildcard=1e-3) where {Wildcard <: Real}
+    extra_state::AbstractArray, Δt::Wildcard=1e-3, ε::Wildcard=0.1) where {Wildcard <: Real}
     qA = q
     uA = u
     n = length(qA)
@@ -111,7 +110,6 @@ function Moreau(gap::Function, dynamics::Function, q::AbstractArray, u::Abstract
     tA, tM, tE = zeros(Wildcard, 3)
     tM = _compute_mid_time(tA, Δt)
     tE = _compute_mid_time(tM, Δt)
-    ε = 0.1
     ϵ = 0.01
     g, Wn = gap(qA, uA)
     W = Wn

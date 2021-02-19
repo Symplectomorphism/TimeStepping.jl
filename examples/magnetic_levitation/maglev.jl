@@ -13,7 +13,7 @@ using TimeStepping
 
 par = Dict{Symbol, Float32}(
     :m=>0.01187, :g=>9.81, :C=>1.4e-4, :L1=>0.65, :R=>28.7, :qd=>0.1, :tf=>4.0,
-    :Δt=>1e-3
+    :Δt=>1e-3, :ε=>0.1
 )
 
 δ = convert.(Float32, [0.05, 0.20])       # Hard stops of the maglev system.
@@ -26,8 +26,8 @@ function gap(q::AbstractArray, u::AbstractArray)
 end
 
 function dynamics(q::AbstractArray, u::AbstractArray, extra_state::AbstractArray)
-    return convert.(Float32, par[:m])*Matrix(1.0f0*I, 1, 1), 
-        convert.(Float32, par[:m]*par[:g] .- par[:C]*(extra_state[1]./q[1]).^2)*ones(Float32, 1)
+    return par[:m]*Matrix(1.0f0*I, 1, 1), 
+        (par[:m]*par[:g] .- par[:C]*(extra_state[1]./q[1]).^2)*ones(Float32, 1)
 end
 
 function fl_controller(extra_state::AbstractArray, q::AbstractArray, u::AbstractArray)
@@ -62,7 +62,6 @@ function curr_cmd_controller(extra_state::AbstractArray, q::AbstractArray, u::Ab
     qd = par[:qd]
 
     x = (q[1], u[1], extra_state[1])
-    ξ = (x[1]-qd, x[2], g - C/m*(x[3]/x[1])^2)
 
     v = -25.0*(x[1]-qd) - 10.0*x[2]
     i_ref = x[1]*sqrt( m/C*(g - v) )
@@ -87,7 +86,7 @@ function extradynamics(extra_state::AbstractArray, q::AbstractArray, u::Abstract
         + 1/L*control_input) * ones(Float32, 1)
 end
 
-maglev = Integrator(gap, dynamics, q0, u0, extra_state0; Δt=par[:Δt])
+maglev = Integrator(gap, dynamics, q0, u0, extra_state0, Δt=par[:Δt], ε=par[:ε])
 integrate(maglev, extradynamics, par[:tf])
 
 
