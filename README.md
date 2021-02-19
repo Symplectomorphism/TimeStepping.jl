@@ -16,7 +16,7 @@
 > loop(q::AbstractArray), jac(q::AbstractArray), jacdot(q::AbstractArray, u::AbstractArray)\
 > return ϕ, J, Jdot
 
-4. If there are electrical components these can be modeled using the _extradynamics_ function (see the magnetic levitation example).
+4. If there are electrical components these can be modeled using the _extradynamics_ function (see the magnetic levitation example and the associated description file [Link](examples/magnetic_levitation/maglev_description.pdf) ).
 > extradynamics(extra_state::AbstractArray, q::AbstractArray, u::AbstractArray)\
 
 5. Initialize the system by providing the gap and dynamics functions, and the initial conditions (for holonomic constraints, provide them, too).
