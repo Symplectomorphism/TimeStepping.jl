@@ -32,11 +32,6 @@ mutable struct Moreau{SpecializedType}
     ϵ::SpecializedType                      # Baumgarte stabilization constant
 end
 
-"""
-n: degrees of freedom of the system
-m: number of unilateral constraints
-"""
-
 function Moreau(gap::Function, dynamics::Function, q::AbstractArray, u::AbstractArray, 
         Δt::Wildcard=1e-3, ε::Wildcard=0.5) where {Wildcard <: Real}
     qA = q
